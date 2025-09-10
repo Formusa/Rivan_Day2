@@ -1,0 +1,281 @@
+Subnetting via Hosts
+CSI Method 
+
+Given:
+ Exercise 03: Design a network for accenture.com with 1750 agents, team leads, 
+project managers, and quality assurance teams. Use the 10.0.0.0/8 IP address space.
+
+Convert:  1750 Agents into bits = 11bits (Hosts bits)
+Subtract: /32 - 11bits = /21  (3rd Octet, 8i)  = 10.0.0.0/21 
+10.0.0.0/21 is correct but cisco wants the other method
+(y 32? coz of Ipv4 total bits)
+Insert/Ipasok ung 8i sa 3rd Octetsa hiwa = 10.0.8.0/21 
+
+---
+
+Network (Accenture.com): 10.0.8.0/21 255.255.248.0
+Valid Range
+ - First Valid (+1 Network): 10.0.8.1
+ - Last Valid(-1 Broadcast): 10.0.15.254
+Broadcast (-1 Next Network): 10.0.15.255
+
+Next Network (Not Accenture.com) (): 10.0.16.0 /21
+
+
+Exercise 04: Design a network for concentrix.com with 160 admin, 250 managers, 
+112 executive, 100 security agents. Use the 172.16.0.0/16 IP address space.
+
+   160 admin
+   250 managers
+   112 execs
++  100 sec agents
+   622 in total
+
+Convert: 622 = 10bits 
+Subtract: /32 - 10 = 22bits (3rd Octet, 4i) ---> 172.16.4.0 /22
+
+Network: 172.16.4.0 /22  255.255.3.0
+Valid Ranges
+ 1st(+1 Network): 172.16.4.1
+ Last(-1 Broadcast):172.16.7.254
+Broadcast(-1 Next network): 172.16.16.255
+
+Next network: 172.16.8.0 /22
+
+VLAN 32 & Reserve 100 IPs
+
+Configuration
+@CoreBABA
+config t
+ vlan 32
+  name concentrix.com
+  exit
+ int vlan 32
+  ip add 172.16.4.1 255.255.252.0
+  ip ospf 1 area 0
+  no shut
+  exit
+ ip dhcp excluded-add 172.16.4.1  172.16.4.100
+ ip dhcp pool concentrix.com
+  network 172.16.4.0 255.255.252.0
+  default-router 172.16.4.1
+  domain-name concentrix.com
+  dns-server 10.92.1.10
+  option 150 ip 10.92.100.8
+ int fa 0/7
+  switchport voice vlan 32
+  shut
+  no shut
+  end
+show ip dhcp binding
+
+
+
+_______________________________________________________________________________________
+Exercise 05: Design and implement a network for foundever.com with 45 users. 
+Use the 192.168.0.0/24 IP address space
+
+Convert: 45 = 5 bits
+Subtract: /32 - 5 = 27 bits  (4th Octet, 32i)  192.168.0.32 /27
+Network : 192.168.0.64 /27 255.255.255.31
+Valid Ranges
+1st(+1 Network): 192.168.0.65
+Last(-1 Broadcast): 192.168.0.126
+Broadcast(-1 Next Network): 192.168.0.127
+
+Next Network: 192.168.0.128 /27
+
+@CoreBABA
+config t
+ vlan 25
+  name foundever.com
+  exit
+ int vlan 25
+  ip add 192.168.0.65 255.255.255.192
+  ip ospf 1 area 0
+  no shut
+  exit
+ ip dhcp excluded-add 192.168.0.65  192.168.0.75
+ ip dhcp pool foundever.com
+  network 192.168.0.64 255.255.255.192
+  default-router 192.168.0.65
+  domain-name foundever.com
+  dns-server 10.92.1.10
+  option 150 ip 10.92.100.8
+ int fa 0/5
+  switchport voice vlan 25
+  shut
+  no shut
+  end
+show ip dhcp binding
+
+
+
+_________________________________________________________________________
+10.0.0.0 /8
+700
+C: 700 = 10 bits
+S: /32 - 10 = /22 (3rd, 4i)
+ipasok 4i sa 3rd octet, 10.0.4.0 /22
+
+
+@D1
+conf t 
+ vlan 13 
+  name TELUS.com
+  exit
+ int vlan 13
+ ip add 10.0.4.1 255.255.252.0
+ no shut
+ ip dhcp excluded-address 10.0.4.1
+___________________________________________________________________________
+
+Find the network
+
+
+172.16.28.17 /29 (4th Octet, 8i) NET = 172.16.28.16 /29
+
+10.140.12.81 /26  = (4th Octet, 64i) NET = 10.140.12.64
+
+192.168.105.2 /19 = (3rd Octet, 32i) NET = 192.168.96.0
+
+10.1.1.243 /29 (4th Oct, 8i) NET = 10.1.1.240 /29
+
+___________________________________________________________________________
+Subnet for 8 offices using the Network address 192.168.128.0/27 
+Maximize the number of IP addresses.
+
+CAI: Convert, Add, Insert/Ipasok
+
+Convert (via Bit Value) 8 = 3bits
+Add:/27 + 3bits = /30 (4th, 4i)         192.168.128.0 /30 = First Subnet
+Insert/Ipasok 4i sa 4th Octet = 192.168.128.4 /30 = Second Subnet
+192.168.128.8 /30 - 3rd
+192.168.128.12 /30 - 4th
+192.168.128.16 /30 - 5th
+192.168.128.20 /30 - 6th
+192.168.128.24 /30 - 7th
+192.168.128.28 /30 - 8th
+
+Not Included - 192.168.128.32 /30
+
+Verify
+@CoreTAAS
+conf t
+ ip routing
+ int loopback 1
+  ip add 192.168.128.1 255.255.255.252
+ int loopback 2
+  ip add 192.168.128.5 255.255.255.252
+ int loopback 3
+  ip add 192.168.128.9 255.255.255.252
+ int loopback 4
+  ip add 192.168.128.13 255.255.255.252
+ int loopback 5
+  ip add 192.168.128.17 255.255.255.252
+ int loopback 6
+  ip add 192.168.128.21 255.255.255.252
+ int loopback 7
+  ip add 192.168.128.25 255.255.255.252
+ int loopback 8
+  ip add 192.168.128.29 255.255.255.252
+  end
+show ip route
+
+________________________________________________________________________________________
+Exercise 08: Subnet for 32 offices using the IP address 172.16.224.0 /19. 
+Maximize the number of IP addresses. 
+
+Apply the first valid IP of the 5th subnet on coreTaas loopback 50
+
+Network Add: 172.16.224.0 /19
+
+First valid IP:
+
+172.16.224.0 /19 
+
+
+Convert: 32 = 5 bits 
+Add: /19 + 5 = /24 (3rd Octet, 1i)          
+172.16.224.0 /24 = first subnet
+insert 1i to 3rd octet = 172.16.225.0 /24 = 2nd subnet
+172.16.226.0 /24 = 3rd Subnet
+172.16.227.0 /24 = 4th Subnet
+172.16.228.0 /24 = 5th Subnet
+
+@coreTAAS
+conf t
+ ip routing
+ int fa0/9
+  no switchport
+  ip add 172.16.224.1 255.255.255.0
+  no shut
+  end
+
+@CoreBABA
+conf t
+ ip routing 
+ int fa0/9
+ no switchport 
+ ip add 172.16.225.254 255.255.255.0
+ no shut
+ end
+_____________________________________________________________________________________________
+
+Exercise 09: Design and Implement 16 offices using the Network address 172.16.224.0/19. 
+Maximize the number of IP addresses.
+
+Convert: 16 = 4 bits 
+Add: /19 + 4 = /23 (3rd Octet, 2i) 255.255.254.0
+I: si 2i sa 3rd
+
+First Subnet: 172.16.224.0 /23
+First Valid IP: 172.16.224.1 /23
+Last Valid IP: 172.16.225.254 /23
+Broad: 172.16.225.255 /23
+Next: 172.16.226.0 /23
+
+Apply the first valid IP of the 1st  subnet on I1's e0/0 interface
+Apply the last valid IP of the 1st subnet on R1's e0/0 interface
+
+Second Subnet: 172.16.226.0 /23
+1st Valid IP: 172.16.226.0 /23
+Last Valid IP: 172.16.226.254 /23
+Broad: 172.16.227.255 /23
+Next: 172.16.228.0 /23
+
+Apply the first valid IP of the 2nd  subnet on I2's e0/0 interface
+Apply the last valid IP of the 2nd subnet on R2's e0/0 interface
+
+3rd Subnet: 172.16.228.0 /23
+1st Valid IP: 172.16.228.0 /23
+Last Valid IP: 172.16.229.254 /23
+Broad: 172.16.229.255
+Next: 172.16.230.0 /23
+
+Apply the first valid IP of the 3rd  subnet on I3's e0/0 interface
+Apply the last valid IP of the 3rd subnet on R3's e0/0 interface
+
+4th Subnet: 172.16.230.0 /23
+1st Valid IP: 172.16.230.0 /23
+Last Valid IP: 172.16.230.254 /23
+Broad: 172.16.231.255 /23
+Next: 172.16.232.0
+
+Apply the first valid IP of the 4th  subnet on I4's e0/0 interface
+Apply the last valid IP of the 4th subnet on R4's e0/0 interface
+(I4 = Google DNS)
+
+@I's 
+conf t
+ int e0/0
+  no shut
+  ip add 172.16.225.1 255.255.254.0
+  end
+
+@R's
+conf t 
+ int e0/0
+ no shut
+ ip add 172.16.224.254 255.255.254.0
+ end
